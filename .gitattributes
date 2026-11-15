@@ -1,0 +1,7 @@
+# 统一行尾，避免 Windows / CI 之间反复改整文件
+* text=auto eol=lf
+
+# PowerShell 脚本与批处理必须是 CRLF，PowerShell 5.1 才稳
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf

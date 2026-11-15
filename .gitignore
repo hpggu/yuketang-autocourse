@@ -1,0 +1,16 @@
+# 运行产物
+logs/
+*.log
+
+# 停止标记文件（运行时生成）
+STOP_AUTOCOURSE
+
+# 打包产物
+*.zip
+release/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

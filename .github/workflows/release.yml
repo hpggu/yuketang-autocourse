@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build zip
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ver = "${{ github.ref_name }}".TrimStart('v')
+          $stage = "package/YuketangAutoCourse-$ver"
+          New-Item -ItemType Directory -Force $stage | Out-Null
+
+          Copy-Item 'src\AutoCourse.ps1'     $stage
+          Copy-Item 'src\*.cmd'              $stage
+          Copy-Item 'docs\USAGE.md'          $stage
+          Copy-Item 'README.md', 'LICENSE', 'CHANGELOG.md' $stage
+
+          # cmd 启动脚本依赖 AutoCourse.ps1 与本目录同层，保持扁平结构
+          Compress-Archive -Path "$stage\*" -DestinationPath "YuketangAutoCourse-$ver.zip" -Force
+          Get-Item "YuketangAutoCourse-$ver.zip" | Select-Object Name, Length
+
+      - name: Upload release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: YuketangAutoCourse-*.zip
+          generate_release_notes: true
+          body: |
+            下载 `YuketangAutoCourse-*.zip`，解压后双击 `启动自动连播.cmd` 即可。
+
+            使用前请先读 [README](README.md) 与 [docs/USAGE.md](docs/USAGE.md)。

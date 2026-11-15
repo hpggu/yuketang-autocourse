@@ -1,0 +1,36 @@
+name: 功能建议
+description: 新能力或行为调整
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **以下方向不在项目范围内，提了也不会做：** 改倍速、静音刷课、伪造进度、绕过平台检测、自动答题、自动签到、把学习记录上报到第三方。
+
+        符合范围内的例子：更好的目录识别、卡住自愈策略、多浏览器支持、日志与自检增强、CDP 方案。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你遇到的问题
+      description: 描述场景，不要直接给方案
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议的做法
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 是否属于 README 中「它做什么」的范围
+      options:
+        - 是，属于自动播放 / 自动切换
+        - 不确定
+        - 属于「它不做什么」
+    validations:
+      required: true

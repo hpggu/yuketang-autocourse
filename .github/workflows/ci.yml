@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse check (PowerShell syntax)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path 'src\AutoCourse.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors) {
+            $errors | ForEach-Object { Write-Host "::error::$($_.Extent.StartLineNumber): $($_.Message)" }
+            exit 1
+          }
+          Write-Host 'Syntax OK'
+
+      - name: PSScriptAnalyzer
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+          Invoke-ScriptAnalyzer -Path 'src\AutoCourse.ps1' -Severity Error, Warning |
+            Format-Table RuleName, Line, Message -AutoSize
+
+      - name: Verify required files
+        shell: pwsh
+        run: |
+          $required = @(
+            'src\AutoCourse.ps1',
+            'src\启动自动连播.cmd',
+            'src\停止自动连播.cmd',
+            'README.md',
+            'LICENSE',
+            'CHANGELOG.md',
+            'docs\USAGE.md'
+          )
+          $missing = $required | Where-Object { -not (Test-Path $_) }
+          if ($missing) {
+            $missing | ForEach-Object { Write-Host "::error::missing $_" }
+            exit 1
+          }
+          Write-Host 'All required files present'
