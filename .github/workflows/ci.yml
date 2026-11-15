@@ -12,43 +12,64 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Parse check (PowerShell syntax)
+      - name: PowerShell 语法检查
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $tokens = $null
           $errors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile(
-            (Resolve-Path 'src\AutoCourse.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
+          $path = (Resolve-Path 'src/AutoCourse.ps1').Path
+          [void][System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors)
           if ($errors) {
-            $errors | ForEach-Object { Write-Host "::error::$($_.Extent.StartLineNumber): $($_.Message)" }
+            $errors | ForEach-Object {
+              Write-Host "::error file=src/AutoCourse.ps1,line=$($_.Extent.StartLineNumber)::$($_.Message)"
+            }
             exit 1
           }
           Write-Host 'Syntax OK'
 
-      - name: PSScriptAnalyzer
+      - name: 编码检查（脚本必须带 UTF-8 BOM）
+        shell: pwsh
+        run: |
+          $bytes = [System.IO.File]::ReadAllBytes('src/AutoCourse.ps1')
+          if ($bytes.Length -lt 3 -or $bytes[0] -ne 0xEF -or $bytes[1] -ne 0xBB -or $bytes[2] -ne 0xBF) {
+            Write-Host '::error file=src/AutoCourse.ps1::AutoCourse.ps1 必须保存为 UTF-8 BOM，否则 PowerShell 5.1 会按 ANSI 读坏中文'
+            exit 1
+          }
+          Write-Host 'UTF-8 BOM OK'
+
+      - name: PSScriptAnalyzer（不阻断构建）
         shell: pwsh
         continue-on-error: true
         run: |
           Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
-          Invoke-ScriptAnalyzer -Path 'src\AutoCourse.ps1' -Severity Error, Warning |
+          Invoke-ScriptAnalyzer -Path 'src/AutoCourse.ps1' -Severity Error, Warning |
             Format-Table RuleName, Line, Message -AutoSize
 
-      - name: Verify required files
+      - name: 必需文件检查
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
           $required = @(
-            'src\AutoCourse.ps1',
-            'src\启动自动连播.cmd',
-            'src\停止自动连播.cmd',
+            'src/AutoCourse.ps1',
             'README.md',
             'LICENSE',
             'CHANGELOG.md',
-            'docs\USAGE.md'
+            'CONTRIBUTING.md',
+            'docs/USAGE.md',
+            'docs/REVIEW.md'
           )
-          $missing = $required | Where-Object { -not (Test-Path $_) }
-          if ($missing) {
-            $missing | ForEach-Object { Write-Host "::error::missing $_" }
+          $missing = @($required | Where-Object { -not (Test-Path -LiteralPath $_) })
+
+          # 中文文件名不写进清单，按数量校验，避免编码问题
+          $cmds = @(Get-ChildItem -LiteralPath 'src' -Filter '*.cmd' -File)
+          if ($cmds.Count -ne 2) {
+            Write-Host "::error::src 下应有 2 个 .cmd（启动 / 停止），实际 $($cmds.Count) 个"
             exit 1
           }
-          Write-Host 'All required files present'
+
+          if ($missing.Count -gt 0) {
+            $missing | ForEach-Object { Write-Host "::error::缺少文件 $_" }
+            exit 1
+          }
+          Write-Host "必需文件齐全，cmd 数量 $($cmds.Count)"

@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -15,24 +16,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build zip
+      - name: 打包
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $ver = "${{ github.ref_name }}".TrimStart('v')
+          if ([string]::IsNullOrWhiteSpace($ver)) { $ver = 'dev' }
+
           $stage = "package/YuketangAutoCourse-$ver"
           New-Item -ItemType Directory -Force $stage | Out-Null
 
-          Copy-Item 'src\AutoCourse.ps1'     $stage
-          Copy-Item 'src\*.cmd'              $stage
-          Copy-Item 'docs\USAGE.md'          $stage
-          Copy-Item 'README.md', 'LICENSE', 'CHANGELOG.md' $stage
+          Copy-Item 'src/AutoCourse.ps1' $stage
+          Get-ChildItem -LiteralPath 'src' -Filter '*.cmd' -File | Copy-Item -Destination $stage
+          Copy-Item 'docs/USAGE.md', 'README.md', 'LICENSE', 'CHANGELOG.md' $stage
 
-          # cmd 启动脚本依赖 AutoCourse.ps1 与本目录同层，保持扁平结构
-          Compress-Archive -Path "$stage\*" -DestinationPath "YuketangAutoCourse-$ver.zip" -Force
-          Get-Item "YuketangAutoCourse-$ver.zip" | Select-Object Name, Length
+          $zip = "YuketangAutoCourse-$ver.zip"
+          Compress-Archive -Path "$stage/*" -DestinationPath $zip -Force
+          Get-Item $zip | Select-Object Name, Length
 
-      - name: Upload release
+      - name: 上传 Release
         uses: softprops/action-gh-release@v2
         with:
           files: YuketangAutoCourse-*.zip
@@ -40,4 +42,4 @@ jobs:
           body: |
             下载 `YuketangAutoCourse-*.zip`，解压后双击 `启动自动连播.cmd` 即可。
 
-            使用前请先读 [README](README.md) 与 [docs/USAGE.md](docs/USAGE.md)。
+            使用前请先读 README 与 docs/USAGE.md。
