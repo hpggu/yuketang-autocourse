@@ -45,6 +45,13 @@
 - PowerShell 5.1（系统自带即可，不需要装 PowerShell 7）
 - Microsoft Edge（默认）或 Chrome
 
+### 获取方式
+
+- **下载打包版（推荐）**：到 [Releases](https://github.com/hpggu/yuketang-autocourse/releases/latest) 下载 YuketangAutoCourse-x.y.z.zip，解压到任意目录，双击解压出来的 **`启动自动连播.cmd`** 即可（打包版是扁平结构，没有 `src` 这一层）。
+- **使用源码**：克隆仓库后从 `src` 目录运行，路径是 `src\启动自动连播.cmd`。
+
+下面的步骤以源码结构写路径，打包版把 `src\` 前缀去掉即可。
+
 ### 步骤
 
 1. 用浏览器打开雨课堂「学习空间」，**登录**，进入任意一门课。
