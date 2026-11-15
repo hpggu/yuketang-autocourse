@@ -4,7 +4,7 @@
 > 不注入页面脚本、不改倍速、不碰作业与测试。
 
 <p align="left">
-  <img alt="version" src="https://img.shields.io/badge/version-1.1.0-blue">
+  <img alt="version" src="https://img.shields.io/badge/version-1.1.1-blue">
   <img alt="platform" src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4">
   <img alt="runtime" src="https://img.shields.io/badge/runtime-PowerShell%205.1%2B-5391FE">
   <img alt="browser" src="https://img.shields.io/badge/browser-Edge%20%2F%20Chrome-1B9AAA">
@@ -89,7 +89,7 @@ powershell -ExecutionPolicy Bypass -File .\src\AutoCourse.ps1 -ProcessName chrom
 `-Once` 输出示例：
 
 ```
-Version      : 1.1.0
+Version      : 1.1.1
 WindowTitle  : 学习空间 - 雨课堂
 PlayerClass  : xt_video_player
 LessonCount  : 12

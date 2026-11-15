@@ -10,14 +10,14 @@ param(
 )
 
 # ============================================================================
-# 雨课堂自动连播 v1.1.0
+# 雨课堂自动连播 v1.1.1
 # 只做三件事：暂停就续播 / 播完切下一节视频 / 卡住就自愈。
 # 不碰倍速、不拖进度、不改页面、不处理作业与测试。
 # ============================================================================
 
 $ErrorActionPreference = 'Stop'
 
-$script:Version         = '1.1.0'
+$script:Version         = '1.1.1'
 $script:LogFile         = Join-Path $PSScriptRoot ('logs\autocourse-{0:yyyyMMdd-HHmmss}.log' -f (Get-Date))
 $script:StopFile        = Join-Path $PSScriptRoot 'STOP_AUTOCOURSE'
 $script:ExitCode        = 0

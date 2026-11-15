@@ -12,6 +12,7 @@
 - CI 的必需文件检查不再硬编码中文 `.cmd` 文件名，改为按 `src` 下 `*.cmd` 数量校验。
 - 打包步骤改为 `Get-ChildItem -Filter '*.cmd'` 复制，避免中文路径在不同 runner 上的编码差异。
 - 新增 CI 编码检查：`src/AutoCourse.ps1` 必须带 UTF-8 BOM。
+- 脚本内 `Version` 与 README 徽章同步为 1.1.1。
 
 ## [1.1.0] - 2026-11-15
 
