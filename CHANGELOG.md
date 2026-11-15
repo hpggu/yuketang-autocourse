@@ -2,6 +2,39 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [2.0.0] - 2026-11-15
+
+**换掉实现方式：UI Automation → Chrome DevTools Protocol。**
+
+1.1.1 在真机上启动即报「未找到包含播放器的浏览器窗口」。排查结论：当前 Edge（127.x）的无障碍树只暴露有语义 / 可聚焦的节点，播放器整块（含时间文本、播放按钮）根本不在树里，`xt_video_player` 一次都没出现过。这不是选择器写错，是路线不成立：
+
+- msedge 窗口 Descendants=695，ControlType 只有 Text×396 / Group×169 / Button×53 / Pane×49 / ListItem×6 / Document×2，类名只有 `leaf-item`、`nav-item-title is-expand`、`el-input__inner`、`EdgeTab`；
+- 视频区只存在一个无 name 的 `Intermediate D3D Window` Pane；
+- 用 `--force-renderer-accessibility` 起临时 profile 也不暴露网页文本；
+- `TextPattern.GetText` 直接 `System.AccessViolationException` 崩进程。
+
+改用 CDP 后这些问题一次性消失。
+
+### 变更
+
+- **新传输层**：`/json/list` 选标签页 + `System.Net.WebSockets.ClientWebSocket` 连 `webSocketDebuggerUrl`，`Runtime.evaluate`（`returnByValue` + `awaitPromise`）在页面内执行 JS。
+- **新状态源**：直接读 `video.currentTime` / `duration` / `paused` / `ended`，不再解析屏幕上的 `mm:ss` 文本，与窗口缩放、遮挡、DPI 无关。
+- **不再抢鼠标**：1.x 需要 hover 播放器底部 0.9 秒让控制条浮出来读时间；2.0 完全不碰鼠标，浏览器可以最小化。
+- **`NotAllowedError` 兜底**：`play()` 被自动播放策略拦下时，用 `Input.dispatchMouseEvent` 在播放器中央派发一次真实点击。
+- **新参数**：`-Port`（默认 9222）、`-UrlMatch`（默认 `yuketang`）、`-EndToleranceSeconds`（默认 1.5）、`-Quiet`；删除 `-ProcessName`（不再靠进程名找窗口）。
+- **断线重连**：WebSocket 断开后自动重连，不用重开脚本。
+- **浮层探测**：每轮统计疑似测验 / 弹窗的浮层数量并写警告日志。
+- **启动器**：`启动自动连播.cmd` → `启动刷课.cmd`，自动探测 9222 端口，未开则结束浏览器并用 `--remote-debugging-port=9222 --restore-last-session` 重启（会话恢复，登录态不丢）。
+- 目录切换仍按 `.leaf-item` + 包含「视频」匹配，从当前高亮往后找第一个。
+
+### 保留
+
+- 单实例互斥量、`STOP_AUTOCOURSE` 停止标记、`logs\autocourse-*.log` 日志、`-Once` / `-NextNow` / `-MaxVideos` / `-MaxStuckPerLesson` / `-MaxStuckTotal` 语义不变。
+
+### 实测
+
+Edge 127.0.2651.74 + 长江雨课堂页面：`-Once` 读到 `CurrentTime 1:11 / Duration 10:34 / LeafCount 77 / ActiveLeaf 视频 1.1 可视化初识`；主循环被 `NotAllowedError` 拦下后点击恢复播放，14 秒后时间从 1:11 推进到 1:30。
+
 ## [1.1.1] - 2026-11-15
 
 发布流水线修复，脚本本身行为不变。

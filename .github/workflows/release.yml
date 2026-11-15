@@ -40,6 +40,6 @@ jobs:
           files: YuketangAutoCourse-*.zip
           generate_release_notes: true
           body: |
-            下载 `YuketangAutoCourse-*.zip`，解压后双击 `启动自动连播.cmd` 即可。
+            下载 `YuketangAutoCourse-*.zip`，解压后双击 `启动刷课.cmd` 即可。
 
             使用前请先读 README 与 docs/USAGE.md。
